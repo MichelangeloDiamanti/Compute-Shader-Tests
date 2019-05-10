@@ -1,0 +1,46 @@
+﻿#pragma enable_d3d11_debug_symbols
+#pragma kernel CSMain
+
+StructuredBuffer<float> InputDataBuffer;
+uint InputDataWidth;
+uint InputDataHeight;
+
+RWStructuredBuffer<float> OutputDataBuffer;
+
+[numthreads(32, 32, 1)]
+void CSMain(uint3 groupID : SV_GroupID,
+   uint3 groupThreadID : SV_GroupThreadID,
+   uint groupIndex : SV_GroupIndex,
+   uint3 id : SV_DispatchThreadID)
+{
+	uint navMeshRes = InputDataWidth * InputDataHeight;
+
+	// Each thread is mapped to a single "pixel" of the input
+	uint index = id.y * InputDataWidth + id.x;
+
+	// Check that we are inside the boundaries of the input
+	if(id.x < InputDataWidth && id.y < InputDataHeight)
+	{
+		OutputDataBuffer[index] = 0;
+		float val = InputDataBuffer[index];
+
+		uint i = 0, j = 0;
+		float v;
+
+		if (val == 1)
+		{
+			for(i = 0; i < InputDataWidth; i++)
+			{
+				for(j = 0; j < InputDataHeight; j++)
+				{
+					v = InputDataBuffer[j * InputDataWidth + i];
+
+					if (v == 1)
+					{
+						OutputDataBuffer[index] += 1;
+					}
+				}
+			}
+		}
+	}
+}
